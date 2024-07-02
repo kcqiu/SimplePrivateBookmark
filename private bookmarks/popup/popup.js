@@ -189,11 +189,29 @@ document.addEventListener("DOMContentLoaded", () => {
           moveBookmark(draggedIndex, index);
         });
 
+        const linkAndDeleteContainer = document.createElement("div");
+        linkAndDeleteContainer.style.display = "flex";
+        linkAndDeleteContainer.style.justifyContent = "space-between";
+        linkAndDeleteContainer.style.width = "100%";
+
         const link = document.createElement("a");
         link.href = bookmark.url;
-        link.textContent = bookmark.title;
         link.target = "_blank";
-        bookmarkItem.appendChild(link);
+
+        // Create a div for the title and add the title to this div
+        const titleDiv = document.createElement("div");
+        titleDiv.className = 'bookmark-title';
+        const maxTitleLength = 20;
+        if (bookmark.title.length > maxTitleLength) {
+          // If the title is too long, trim it and add an ellipsis
+          titleDiv.textContent = bookmark.title.substring(0, maxTitleLength) + '...';
+        } else {
+          // If the title is not too long, use it as is
+          titleDiv.textContent = bookmark.title;
+        }
+        link.appendChild(titleDiv);
+
+        linkAndDeleteContainer.appendChild(link);
 
         const deleteIcon = document.createElement("img");
         deleteIcon.src = "../assets/icons/delete_icon.png";
@@ -201,7 +219,9 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteIcon.addEventListener("click", () => {
           deleteBookmark(index);
         });
-        bookmarkItem.appendChild(deleteIcon);
+
+        linkAndDeleteContainer.appendChild(deleteIcon);
+        bookmarkItem.appendChild(linkAndDeleteContainer);
 
         bookmarkList.appendChild(bookmarkItem);
       });
