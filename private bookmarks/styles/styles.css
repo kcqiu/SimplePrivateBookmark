@@ -47,3 +47,24 @@ body {
   font-size: 14px;
   color: green;
 }
+#header{
+  text-align: center;
+  font-size: 8px;
+  color: darkgrey;
+  padding: 0;
+}
+#divider{
+  color:darkgrey;
+}
+#hint{
+  font-style: italic;
+  color:gray;
+  text-align: center;
+  font-size: 12px;
+}
+.bookmark-title {
+  max-width: 200px; /* Adjust as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

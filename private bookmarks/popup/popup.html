@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bookmark Saver</title>
+  <link rel="stylesheet" href="../styles/styles.css">
+  <div id="header">
+    <h1>Simple Private Bookmarks</h1>
+  </div>
+</head>
+<body>
+    <hr id="divider">
+    <div id="loginContainer">
+    <input type="password" id="passwordInput" placeholder="Enter Password" />
+    <button id="loginButton">
+      <img id="loginIcon" src="../assets/icons/unlocked.png" class="icon-button" title="Unlock Bookmarks" />
+    </button>
+  </div>
+  <div id="bookmarkContainer" style="display:none;">
+    <div id="hint">
+      <p>you can right click on a page to add and drag to rearrange bookmarks</p>
+    </div>
+    <div id="controlButtons">
+      <img id="saveButton" src="../assets/icons/add.png" class="icon-button" title="Add to Bookmarks" />
+      <img id="lockButton" src="../assets/icons/lock.png" class="icon-button" title="Lock Extension" />
+    </div>
+
+    <div id="bookmarkList"></div>
+  </div>
+  <div id="messageContainer" style="display:none;"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

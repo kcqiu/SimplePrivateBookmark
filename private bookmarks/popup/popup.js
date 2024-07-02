@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Check if a password is already set and if session is active
-  chrome.storage.local.get(["hash", "sessionActive"], (data) => {
+  chrome.storage.sync.get(["hash", "sessionActive"], (data) => {
     const storedPassword = data.hash;
     sessionActive = data.sessionActive || false;
 
@@ -74,13 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Check stored password and handle login or set password
-    chrome.storage.local.get("hash", (data) => {
+    chrome.storage.sync.get("hash", (data) => {
       const storedHash = data.hash;
 
       if (storedHash === null) {
         // Set new password
         hashPromise.then((hash) => {
-          chrome.storage.local.set({ hash, sessionActive: true }, () => {
+          chrome.storage.sync.set({ hash, sessionActive: true }, () => {
             if (chrome.runtime.lastError) {
               console.log(chrome.runtime.lastError.message);
             }
@@ -126,11 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const activeTab = tabs[0];
       const bookmark = { title: activeTab.title, url: activeTab.url };
 
-      chrome.storage.local.get({ bookmarks: [] }, (data) => {
+      chrome.storage.sync.get({ bookmarks: [] }, (data) => {
         const bookmarks = data.bookmarks;
         bookmarks.push(bookmark);
 
-        chrome.storage.local.set({ bookmarks }, () => {
+        chrome.storage.sync.set({ bookmarks }, () => {
           if (chrome.runtime.lastError) {
             console.error(chrome.runtime.lastError.message);
             return;
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to lock the extension
   function lockExtension() {
     clearTimeout(lockTimer);
-    chrome.storage.local.set({ sessionActive: false }, () => {
+    chrome.storage.sync.set({ sessionActive: false }, () => {
       if (chrome.runtime.lastError) {
         console.error(chrome.runtime.lastError.message);
         return;
@@ -171,12 +171,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to load and display bookmarks
   function loadBookmarks() {
-    chrome.storage.local.get({ bookmarks: [] }, (data) => {
+    chrome.storage.sync.get({ bookmarks: [] }, (data) => {
       const bookmarks = data.bookmarks;
       bookmarkList.innerHTML = "";
       bookmarks.forEach((bookmark, index) => {
         const bookmarkItem = document.createElement("div");
         bookmarkItem.classList.add("bookmark-item");
+        bookmarkItem.draggable = true;
+
+        bookmarkItem.addEventListener("dragstart", (event) => { event.dataTransfer.setData("text/plain", index); });
+        bookmarkItem.addEventListener("dragover", (event) => {
+          event.preventDefault();
+        });
+        bookmarkItem.addEventListener("drop", (event) => {
+          event.preventDefault();
+          const draggedIndex = event.dataTransfer.getData("text/plain");
+          moveBookmark(draggedIndex, index);
+        });
 
         const link = document.createElement("a");
         link.href = bookmark.url;
@@ -185,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
         bookmarkItem.appendChild(link);
 
         const deleteIcon = document.createElement("img");
-        deleteIcon.src = "icons/delete_icon.png";
+        deleteIcon.src = "../assets/icons/delete_icon.png";
         deleteIcon.classList.add("delete-icon");
         deleteIcon.addEventListener("click", () => {
           deleteBookmark(index);
@@ -197,12 +208,40 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function moveBookmark(oldIndex, newIndex) {
+    // Get the current list of bookmarks
+    chrome.storage.sync.get({ bookmarks: [] }, (data) => {
+      let bookmarks = data.bookmarks;
+
+      // Check if the new index is within the range
+      if (newIndex < 0 || newIndex >= bookmarks.length) {
+        console.error("New index is out of range.");
+        return;
+      }
+
+      // Remove the bookmark from its current position
+      let bookmark = bookmarks.splice(oldIndex, 1)[0];
+
+      // Insert the bookmark at the new position
+      bookmarks.splice(newIndex, 0, bookmark);
+
+      // Save the updated bookmarks back to the Chrome storage
+      chrome.storage.sync.set({ bookmarks }, () => {
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError.message);
+          return;
+        }
+        loadBookmarks();
+      });
+    });
+  }
+
   // Function to delete a bookmark
   function deleteBookmark(index) {
-    chrome.storage.local.get({ bookmarks: [] }, (data) => {
+    chrome.storage.sync.get({ bookmarks: [] }, (data) => {
       const bookmarks = data.bookmarks;
       bookmarks.splice(index, 1);
-      chrome.storage.local.set({ bookmarks }, () => {
+      chrome.storage.sync.set({ bookmarks }, () => {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError.message);
           return;

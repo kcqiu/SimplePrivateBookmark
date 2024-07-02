@@ -1,18 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "Bookmark Saver",
+  "name": "Simple Private Bookmarks",
   "version": "1.0",
   "permissions": [
     "activeTab",
     "storage",
     "scripting",
-    "tabs"
+    "tabs",
+    "contextMenus",
+    "notifications"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "/src/background/background.js"
   },
   "action": {
-    "default_popup": "popup.html",
-    "default_icon":"/icons/default_icon.png"
+    "default_popup": "/popup/popup.html",
+    "default_icon":"/assets/icons/default_icon.png",
+    "default_title": "Simple Private Bookmarks"
+  },
+  "icons": {
+  "16": "/assets/icons/default_icon.png"
   }
 }
