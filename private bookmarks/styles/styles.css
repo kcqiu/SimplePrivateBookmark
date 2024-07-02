@@ -68,3 +68,30 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.bookmark-item {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+}
+
+.link-delete-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.link-delete-container a {
+  flex-grow: 1;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.delete-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  width: 16px;
+  height: 16px;
+}
