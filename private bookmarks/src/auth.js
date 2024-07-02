@@ -1,8 +1,27 @@
 import { showMessage, hashPassword } from './utils.js';
 import { Bookmark } from './bookmark.js';
+// Create a new instance of the Bookmark class
 const bookmark = new Bookmark();
 
+/**
+ * The Auth class represents an authentication manager.
+ * It provides methods to check the session, handle login, lock the extension, and start a lock timer.
+ * The session status and hashed password are stored in the Chrome storage.
+ *
+ * @class
+ * @property {number|null} lockTimer - The timer for automatically locking the extension.
+ * @property {boolean} sessionActive - Whether the session is currently active.
+ * @property {HTMLElement} loginContainer - The HTML element that displays the login form.
+ * @property {HTMLElement} bookmarkContainer - The HTML element that displays the bookmarks.
+ * @property {HTMLElement} messageContainer - The HTML element that displays messages.
+ */
 export class Auth {
+    /**
+     * Creates a new Auth manager.
+     * Initializes the lock timer to null, the session status to false, and the containers to their corresponding HTML elements.
+     *
+     * @constructor
+     */
     constructor() {
         this.lockTimer = null;
         this.sessionActive = false;
@@ -10,7 +29,11 @@ export class Auth {
         this.bookmarkContainer = document.getElementById("bookmarkContainer");
         this.messageContainer = document.getElementById("messageContainer");
     }
-
+    /**
+     * Checks the session status and the stored password.
+     * If there is no stored password, it prompts the user to set an initial password.
+     * If the session is active, it hides the login form, displays the bookmarks, and starts the lock timer.
+     */
     checkSession() {
         chrome.storage.sync.get(["hash", "sessionActive"], (data) => {
             const storedPassword = data.hash;
@@ -32,7 +55,13 @@ export class Auth {
             }
         });
     }
-
+    /**
+     * Handles the login process.
+     * If the entered password is empty, it shows an error message and returns.
+     * If there is no stored password, it sets the entered password as the new password.
+     * If the entered password matches the stored password, it hides the login form, displays the bookmarks, and starts the lock timer.
+     * If the entered password does not match the stored password, it shows an error message.
+     */
     loginHandler() {
         const password = document.getElementById("passwordInput").value.trim();
         const hashPromise = hashPassword(password);
@@ -85,7 +114,10 @@ export class Auth {
             }
         });
     }
-
+    /**
+     * Locks the extension.
+     * It clears the lock timer, sets the session status to false, hides the bookmarks, and displays the login form.
+     */
     lockExtension() {
         clearTimeout(this.lockTimer);
         chrome.storage.sync.set({ sessionActive: false }, () => {
@@ -99,7 +131,10 @@ export class Auth {
             document.getElementById("passwordInput").value = "";
         });
     }
-
+    /**
+     * Starts the lock timer.
+     * It clears the previous lock timer and sets a new timer that will lock the extension after 1 hour.
+     */
     startLockTimer() {
         clearTimeout(this.lockTimer);
         this.lockTimer = setTimeout(() => {

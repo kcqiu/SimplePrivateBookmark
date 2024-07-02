@@ -1,5 +1,8 @@
-// background.js
-
+/**
+ * This event listener is triggered when the extension is installed.
+ * It initializes the Chrome storage with an empty array of bookmarks and a null hash.
+ * It also creates a context menu item for adding the current page to the bookmarks.
+ */
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({ bookmarks: [], hash: null });
   chrome.contextMenus.create({
@@ -9,6 +12,11 @@ chrome.runtime.onInstalled.addListener(() => {
   })
 });
 
+/**
+ * This event listener is triggered when a message is sent from the extension.
+ * It handles different types of messages: saveBookmark, getBookmarks, setPassword, and getPassword.
+ * For each type of message, it performs the corresponding operation on the Chrome storage and sends a response.
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "saveBookmark") {
     chrome.storage.sync.get(["bookmarks"], (result) => {
@@ -34,7 +42,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
-//CLick event listener for context menu
+
+
+/**
+ * This event listener is triggered when a context menu item is clicked.
+ * If the clicked item is the "addBookmark" item, it checks the session status.
+ * If the session is not active, it shows a notification to unlock the bookmarks.
+ * If the session is active, it adds the current page to the bookmarks.
+ */
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "addBookmark") {
     chrome.storage.sync.get({hash: null}, (data) => {

@@ -1,32 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bookmark Saver</title>
-  <link rel="stylesheet" href="../styles/styles.css">
-  <div id="header">
-    <h1>Simple Private Bookmarks</h1>
-  </div>
+    <!-- The title of the webpage -->
+    <title>Bookmark Saver</title>
+
+    <!-- Link to the external CSS stylesheet -->
+    <link rel="stylesheet" href="../styles/styles.css">
+
+    <!-- Header of the webpage -->
+    <div id="header">
+        <h1>Simple Private Bookmarks</h1>
+    </div>
 </head>
 <body>
-    <hr id="divider">
-    <div id="loginContainer">
+<!-- Divider line -->
+<hr id="divider">
+
+<!-- Container for the login form -->
+<div id="loginContainer">
+    <!-- Input field for the password -->
     <input type="password" id="passwordInput" placeholder="Enter Password" />
+
+    <!-- Login button -->
     <button id="loginButton">
-      <img id="loginIcon" src="../assets/icons/unlocked.png" class="icon-button" title="Unlock Bookmarks" />
+        <!-- Icon for the login button -->
+        <img id="loginIcon" src="../assets/icons/unlocked.png" class="icon-button" title="Unlock Bookmarks" />
     </button>
-  </div>
-  <div id="bookmarkContainer" style="display:none;">
+</div>
+
+<!-- Container for the bookmarks, initially hidden -->
+<div id="bookmarkContainer" style="display:none;">
+    <!-- Hint for the user displayed at the extension level-->
     <div id="hint">
-      <p>you can right click on a page to add and drag to rearrange bookmarks</p>
-    </div>
-    <div id="controlButtons">
-      <img id="saveButton" src="../assets/icons/add.png" class="icon-button" title="Add to Bookmarks" />
-      <img id="lockButton" src="../assets/icons/lock.png" class="icon-button" title="Lock Extension" />
+        <p>you can right click on a page to add and drag to rearrange bookmarks</p>
     </div>
 
+    <!-- Control buttons for saving and locking -->
+    <div id="controlButtons">
+        <!-- Save button -->
+        <img id="saveButton" src="../assets/icons/add.png" class="icon-button" title="Add to Bookmarks" />
+
+        <!-- Lock button -->
+        <img id="lockButton" src="../assets/icons/lock.png" class="icon-button" title="Lock Extension" />
+    </div>
+
+    <!-- List of bookmarks -->
     <div id="bookmarkList"></div>
-  </div>
-  <div id="messageContainer" style="display:none;"></div>
-    <script type="module" src="popup.js"></script>
+</div>
+
+<!-- Container for messages, initially hidden -->
+<div id="messageContainer" style="display:none;"></div>
+
+<!-- Link to the external JavaScript module -->
+<script type="module" src="popup.js"></script>
 </body>
 </html>
