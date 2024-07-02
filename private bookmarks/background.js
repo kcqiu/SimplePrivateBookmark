@@ -1,7 +1,7 @@
 // background.js
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.set({ bookmarks: [], password: null });
+  chrome.storage.local.set({ bookmarks: [], hash: null });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -19,12 +19,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   } else if (message.type === "setPassword") {
-    chrome.storage.local.set({ password: message.password });
+    chrome.storage.local.set({ hash: message.hash });
     sendResponse({ status: "success" });
     return true;
   } else if (message.type === "getPassword") {
     chrome.storage.local.get(["password"], (result) => {
-      sendResponse(result.password);
+      sendResponse(result.hash);
     });
     return true;
   }

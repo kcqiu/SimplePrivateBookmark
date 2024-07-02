@@ -30,8 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Check if a password is already set and if session is active
-  chrome.storage.local.get(["password", "sessionActive"], (data) => {
-    const storedPassword = data.password;
+  chrome.storage.local.get(["hash", "sessionActive"], (data) => {
+    const storedPassword = data.hash;
     sessionActive = data.sessionActive || false;
 
     if (storedPassword === null) {
@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sessionActive) {
       loginContainer.style.display = "none";
       bookmarkContainer.style.display = "block";
+      messageContainer.style.display = "none";
       startLockTimer();
       loadBookmarks();
     }
@@ -66,39 +67,46 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to handle login
   function loginHandler() {
     const password = passwordInput.value.trim();
+    const hashPromise = hashPassword(password);
     if (!password) {
       showMessage("Password cannot be empty!", "red");
       return;
     }
 
     // Check stored password and handle login or set password
-    chrome.storage.local.get("password", (data) => {
-      const storedPassword = data.password;
+    chrome.storage.local.get("hash", (data) => {
+      const storedHash = data.hash;
 
-      if (storedPassword === null) {
+      if (storedHash === null) {
         // Set new password
-        chrome.storage.local.set({ password, sessionActive: true }, () => {
-          if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError.message);
-            return;
-          }
-          showMessage("Password set successfully!", "green");
-          loginButton.title = "Unlock Bookmarks";
-          loginContainer.style.display = "none";
-          bookmarkContainer.style.display = "block";
-          sessionActive = true;
-          startLockTimer();
+        hashPromise.then((hash) => {
+          chrome.storage.local.set({ hash, sessionActive: true }, () => {
+            if (chrome.runtime.lastError) {
+              console.log(chrome.runtime.lastError.message);
+            }
+            showMessage("Password set successfully!", "green");
+            loginButton.title = "Unlock Bookmarks";
+            loginContainer.style.display = "none";
+            bookmarkContainer.style.display = "block";
+            sessionActive = true;
+            startLockTimer();
+          });
         });
-      } else if (storedPassword === password) {
-        // Correct password, show bookmarks
-        loginContainer.style.display = "none";
-        bookmarkContainer.style.display = "block";
-        sessionActive = true;
-        startLockTimer();
-        loadBookmarks();
-      } else {
-        // Incorrect password
-        showMessage("Incorrect password!", "red");
+      } else if (storedHash !== null) {
+        hashPromise.then((hash) => {
+          if (storedHash === hash) {
+            // Correct password, show bookmarks
+            loginContainer.style.display = "none";
+            bookmarkContainer.style.display = "block";
+            messageContainer.style.display = "none";
+            sessionActive = true;
+            startLockTimer();
+            loadBookmarks();
+          } else {
+            // Incorrect password
+            showMessage("Incorrect password!", "red");
+          }
+        });
       }
     });
   }
@@ -211,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     messageContainer.style.display = "block";
     setTimeout(() => {
       messageContainer.style.display = "none";
-    }, 30000);
+    }, 7000);
   }
 
   async function hashPassword(password) {
@@ -222,6 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const hashHex = hashArray
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
+    console.log(hashHex);
     return hashHex;
   }
 });
