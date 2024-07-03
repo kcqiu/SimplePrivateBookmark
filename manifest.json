@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Simple Private Bookmarks",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A secure Chrome extension for easy private bookmark management.",
   "permissions": [
     "activeTab",

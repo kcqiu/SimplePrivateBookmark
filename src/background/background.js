@@ -1,15 +1,15 @@
-/**
- * Sets up initial storage values and context menu item when the extension is installed.
- *
- * This listener is triggered once when the extension is installed or updated to a new version.
- * It initializes the bookmarks storage with an empty array and a null hash value for password storage.
- * Additionally, it creates a context menu item that allows users to add the current page to their private bookmarks.
- */
-chrome.runtime.onInstalled.addListener(() => {
-    // Initialize bookmarks and hash in storage
-    chrome.storage.sync.set({bookmarks: [], hash: null});
+// Initialize bookmarks and encryption key
+chrome.runtime.onInstalled.addListener(async () => {
+    const key = await generateKey();
+    const exportedKey = await exportKey(key);
 
-    // Create a context menu item for adding bookmarks
+    chrome.storage.sync.set({
+        bookmarks: [],
+        encryptionKey: exportedKey,
+        hash: null,
+        sessionActive: false // Ensure sessionActive is initialized
+    });
+
     chrome.contextMenus.create({
         id: "addBookmark",
         title: "Add this page to Private Bookmarks",
@@ -17,62 +17,140 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
+// Generate a key
+ async function generateKey() {
+    return crypto.subtle.generateKey(
+        {
+            name: "AES-GCM",
+            length: 256,
+        },
+        true,
+        ["encrypt", "decrypt"]
+    );
+}
 
-/**
- * Listens for messages from other parts of the extension and performs actions based on the message type.
- *
- * This listener supports four types of messages:
- * - "saveBookmark": Saves a bookmark to Chrome's storage. It retrieves the current list of bookmarks,
- *   adds the new bookmark from the message, and updates the storage. Responds with a success status.
- * - "getBookmarks": Retrieves the list of bookmarks from Chrome's storage and sends it as a response.
- * - "setPassword": Sets a new hash value for the password in Chrome's storage and responds with a success status.
- * - "getPassword": Retrieves the stored hash value of the password from Chrome's storage and sends it as a response.
- *
- * Each action returns true to indicate that it will respond asynchronously.
- */
+// Export key to a format that can be stored
+ async function exportKey(key) {
+    const exported = await crypto.subtle.exportKey("jwk", key);
+    return JSON.stringify(exported);
+}
+
+// Import key from stored format
+ async function importKey(jwk) {
+    return crypto.subtle.importKey(
+        "jwk",
+        JSON.parse(jwk),
+        {
+            name: "AES-GCM",
+        },
+        true,
+        ["encrypt", "decrypt"]
+    );
+}
+
+// Convert ArrayBuffer to Base64 string
+ function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+// Convert Base64 string to ArrayBuffer
+ function base64ToArrayBuffer(base64) {
+    const binary = atob(base64);
+    const len = binary.length;
+    const buffer = new ArrayBuffer(len);
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return buffer;
+}
+
+// Encrypt data
+ async function encryptData(data, key) {
+    const enc = new TextEncoder();
+    const encoded = enc.encode(data);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt(
+        {
+            name: "AES-GCM",
+            iv: iv,
+        },
+        key,
+        encoded
+    );
+    return { iv: arrayBufferToBase64(iv), encrypted: arrayBufferToBase64(encrypted) };
+}
+
+// Decrypt data
+ async function decryptData(encrypted, iv, key) {
+    const decrypted = await crypto.subtle.decrypt(
+        {
+            name: "AES-GCM",
+            iv: base64ToArrayBuffer(iv),
+        },
+        key,
+        base64ToArrayBuffer(encrypted)
+    );
+    const dec = new TextDecoder();
+    return dec.decode(decrypted);
+}
+
+// Message listener for saving and retrieving bookmarks and handling password
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "saveBookmark") {
-        chrome.storage.sync.get(["bookmarks"], (result) => {
+        chrome.storage.sync.get(["bookmarks", "encryptionKey"], async (result) => {
             const bookmarks = result.bookmarks || [];
-            bookmarks.push(message.bookmark);
-            chrome.storage.sync.set({bookmarks});
-            sendResponse({status: "success"});
+            const key = await importKey(result.encryptionKey);
+            const encryptedData = await encryptData(message.bookmark.url, key);
+            bookmarks.push({
+                title: message.bookmark.title,
+                url: encryptedData.encrypted,
+                iv: encryptedData.iv
+            });
+            chrome.storage.sync.set({ bookmarks });
+            sendResponse({ status: "success" });
         });
         return true; // Will respond asynchronously.
     } else if (message.type === "getBookmarks") {
-        chrome.storage.sync.get(["bookmarks"], (result) => {
-            sendResponse(result.bookmarks);
+        chrome.storage.sync.get(["bookmarks", "encryptionKey"], async (result) => {
+            const bookmarks = result.bookmarks || [];
+            const key = await importKey(result.encryptionKey);
+
+            for (const bookmark of bookmarks) {
+                bookmark.url = await decryptData(bookmark.url, bookmark.iv, key);
+            }
+
+            sendResponse(bookmarks);
         });
         return true;
     } else if (message.type === "setPassword") {
-        chrome.storage.sync.set({hash: message.hash});
-        sendResponse({status: "success"});
+        chrome.storage.sync.set({ hash: message.hash });
+        sendResponse({ status: "success" });
         return true;
     } else if (message.type === "getPassword") {
         chrome.storage.sync.get(["hash"], (result) => {
             sendResponse(result.hash);
         });
         return true;
+    } else if (message.type === "setSessionActive") {
+        chrome.storage.sync.set({ sessionActive: message.sessionActive });
+        sendResponse({ status: "success" });
+        return true;
     }
 });
 
-
-/**
- * Handles the event when a context menu item is clicked.
- *
- * This function listens for clicks on the context menu item with the id "addBookmark". When this item is clicked,
- * it first checks if the session is active (i.e., if the user has unlocked their private bookmarks). If the session
- * is not active, it displays a notification prompting the user to unlock their bookmarks. This notification is cleared
- * after 5 seconds. If the session is active, it proceeds to add the current page (URL and title) to the bookmarks list
- * stored in Chrome's sync storage. After adding the bookmark, it sends a message to update the bookmarks display.
- * If an error occurs during the storage operation, it logs the error message.
- */
+// Context menu click handler
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "addBookmark") {
-        chrome.storage.sync.get({sessionActive: false}, (data) => {
+        chrome.storage.sync.get({ sessionActive: false, bookmarks: [], encryptionKey: "" }, async (data) => {
             if (data.sessionActive === false) {
                 console.log("Unlock required");
-                // If the user has not unlocked their private bookmarks, show a notification
                 const notificationId = 'unlockRequired';
                 chrome.notifications.create(notificationId, {
                     type: 'basic',
@@ -80,29 +158,30 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     title: 'Unlock Required',
                     message: 'Please click on the extension icon to unlock your bookmarks.'
                 });
-                // Clear the notification after 5 seconds
                 setTimeout(() => {
                     chrome.notifications.clear(notificationId);
                 }, 5000);
             } else {
-                // If the user has unlocked their private bookmarks, add the bookmark
-                const url = tab.url;
-                const title = tab.title;
+                const key = await importKey(data.encryptionKey);
+                const encryptedData = await encryptData(tab.url, key);
 
-                chrome.storage.sync.get({bookmarks: []}, (data) => {
-                    let bookmarks = data.bookmarks;
-                    bookmarks.push({url, title});
-                    chrome.storage.sync.set({bookmarks}, () => {
-                        if (chrome.runtime.lastError) {
-                            console.error(chrome.runtime.lastError.message);
-                            return;
-                        }
-                        chrome.runtime.sendMessage({action: "updateBookmarks"}).then(response => {
-                            console.log("Response:", response);
-                            console.log("Bookmark added successfully");
-                        }).catch(error => {
-                            console.error("Messaging error:", error);
-                        });
+                const bookmarks = data.bookmarks || [];
+                bookmarks.push({
+                    title: tab.title,
+                    url: encryptedData.encrypted,
+                    iv: encryptedData.iv
+                });
+
+                chrome.storage.sync.set({ bookmarks }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error(chrome.runtime.lastError.message);
+                        return;
+                    }
+                    chrome.runtime.sendMessage({ action: "updateBookmarks" }).then(response => {
+                        console.log("Response:", response);
+                        console.log("Bookmark added successfully");
+                    }).catch(error => {
+                        console.error("Messaging error:", error);
                     });
                 });
             }

@@ -1,3 +1,5 @@
+import {encryptData, importKey} from "./utils.js";
+
 /**
  * Represents a bookmark manager for a Chrome extension.
  * This class is responsible for managing the bookmark list displayed to the user,
@@ -31,24 +33,23 @@ export class Bookmark {
      * it calls `loadBookmarks` to refresh the displayed list of bookmarks, ensuring the newly added bookmark
      * is visible to the user.
      */
+
     saveBookmark() {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
             if (chrome.runtime.lastError || tabs.length === 0) {
                 return;
             }
-
             const activeTab = tabs[0];
             const bookmark = {title: activeTab.title, url: activeTab.url};
 
-            chrome.storage.sync.get({bookmarks: []}, (data) => {
-                const bookmarks = data.bookmarks;
-                bookmarks.push(bookmark);
-
-                chrome.storage.sync.set({bookmarks}, () => {
-                    this.loadBookmarks(); // Load bookmarks after saving
-                });
+            chrome.runtime.sendMessage({
+                type: "saveBookmark",
+                bookmark
+            }, response => {
+                console.log("Bookmark save response:", response);
+                this.loadBookmarks();
             });
-        });
+        })
     }
 
     /**
@@ -83,6 +84,16 @@ export class Bookmark {
                 link.target = "_blank";
                 link.textContent = bookmark.title;
 
+                // Create incognito icon
+                const incognitoIcon = document.createElement("img");
+                incognitoIcon.src = "../assets/icons/incognito.png";
+                incognitoIcon.title = "Open in Incognito Mode";
+                incognitoIcon.classList.add("incognito-icon");
+                incognitoIcon.addEventListener("click", () => {
+                    // Open the link in incognito mode
+                    chrome.windows.create({url: bookmark.url, incognito: true});
+                });
+
                 const deleteIcon = document.createElement("img");
                 deleteIcon.src = "../assets/icons/delete_icon.png";
                 deleteIcon.title = "Delete this URL";
@@ -92,6 +103,7 @@ export class Bookmark {
                 });
 
                 linkAndDeleteContainer.appendChild(link);
+                linkAndDeleteContainer.appendChild(incognitoIcon);
                 linkAndDeleteContainer.appendChild(deleteIcon);
                 bookmarkItem.appendChild(linkAndDeleteContainer);
                 this.bookmarkList.appendChild(bookmarkItem);

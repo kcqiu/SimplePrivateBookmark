@@ -7,6 +7,9 @@ body {
 h1{
     font-size: 18px
 }
+hr {
+    border-top:1px dotted #000;
+}
 #loginContainer, #bookmarkContainer {
     text-align: center;
 }
@@ -98,7 +101,7 @@ h1{
     text-align: left;
 }
 
-.delete-icon {
+.delete-icon, .incognito-icon {
     cursor: pointer;
     margin-left: 10px;
     width: 16px;
