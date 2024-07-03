@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <!-- The title of the webpage -->
     <title>Bookmark Saver</title>
 
@@ -18,14 +20,16 @@
 
 <!-- Container for the login form -->
 <div id="loginContainer">
-    <!-- Input field for the password -->
-    <input type="password" id="passwordInput" placeholder="Enter Password" />
+    <div class="login-group">
+        <!-- Input field for the password -->
+        <input type="password" id="passwordInput" placeholder="Enter Password" minlength="4"/>
+        <!-- Login button -->
+        <button id="loginButton">
+            <!-- Icon for the login button -->
+            <img id="loginIcon" src="../assets/icons/unlocked.png" class="icon-button" title="Unlock Bookmarks"/>
+        </button>
+    </div>
 
-    <!-- Login button -->
-    <button id="loginButton">
-        <!-- Icon for the login button -->
-        <img id="loginIcon" src="../assets/icons/unlocked.png" class="icon-button" title="Unlock Bookmarks" />
-    </button>
 </div>
 
 <!-- Container for the bookmarks, initially hidden -->
@@ -38,10 +42,12 @@
     <!-- Control buttons for saving and locking -->
     <div id="controlButtons">
         <!-- Save button -->
-        <img id="saveButton" src="../assets/icons/add.png" class="icon-button" title="Add to Bookmarks" />
+        <img id="saveButton" src="../assets/icons/add.png" class="icon-button" title="Add to Bookmarks"/>
 
         <!-- Lock button -->
-        <img id="lockButton" src="../assets/icons/lock.png" class="icon-button" title="Lock Extension" />
+        <img id="lockButton" src="../assets/icons/lock.png" class="icon-button" title="Lock Extension"/>
+        <!-- New Folder Button -->
+
     </div>
 
     <!-- List of bookmarks -->

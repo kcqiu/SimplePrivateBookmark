@@ -13,7 +13,8 @@ export function showMessage(message, color) {
     messageContainer.style.display = "block";
     setTimeout(() => {
         messageContainer.style.display = "none";
-    }, 7000);
+    }, 5000);
+
 }
 
 /**

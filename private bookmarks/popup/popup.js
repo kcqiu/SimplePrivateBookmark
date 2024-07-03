@@ -15,9 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveButton = document.getElementById("saveButton");
     const lockButton = document.getElementById("lockButton");
 
-    // Log a message to the console
-    console.log('here');
-
     // Check if all elements are present in the DOM
     // If any element is missing, log an error message to the console and return
     if(!lockButton || !passwordInput || !saveButton || !loginButton) {

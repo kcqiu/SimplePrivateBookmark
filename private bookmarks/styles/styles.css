@@ -1,97 +1,133 @@
 /* styles.css */
 body {
-  font-family: Arial, sans-serif;
-  width: 300px;
-  padding: 10px;
+    font-family: Arial, sans-serif;
+    width: 300px;
+    padding: 10px;
+}
+h1{
+    font-size: 18px
+}
+#loginContainer, #bookmarkContainer {
+    text-align: center;
+}
+/* CSS for the new login-group class */
+.login-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-#loginContainer, #bookmarkContainer {
-  text-align: center;
-}
 
 #controlButtons {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
 }
 
 .icon-button {
-  width: 24px;
-  height: 24px;
-  margin: 0 5px;
-  cursor: pointer;
+    width: 24px;
+    height: 24px;
+    margin: 0 5px;
+    cursor: pointer;
+
 }
 
 #loginButton {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 .bookmark-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.delete-icon {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
 }
 
 #messageContainer {
-  margin-top: 10px;
-  text-align: center;
-  font-size: 14px;
-  color: green;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: green;
 }
-#header{
-  text-align: center;
-  font-size: 8px;
-  color: darkgrey;
-  padding: 0;
+
+#header {
+    text-align: center;
+    font-size: 8px;
+    color: darkgrey;
+    padding: 0;
 }
-#divider{
-  color:darkgrey;
+
+#divider {
+    color: darkgrey;
 }
-#hint{
-  font-style: italic;
-  color:gray;
-  text-align: center;
-  font-size: 12px;
+
+#hint {
+    font-style: italic;
+    color: gray;
+    text-align: center;
+    font-size: 12px;
 }
+
 .bookmark-title {
-  max-width: 200px; /* Adjust as needed */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
+
 .bookmark-item {
-  display: flex;
-  border-bottom: 1px solid #ccc;
+    display: flex;
+    border-bottom: 1px solid #ccc;
 }
 
 .link-delete-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .link-delete-container a {
-  flex-grow: 1;
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: left;
+    flex-grow: 1;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
 }
 
 .delete-icon {
-  cursor: pointer;
-  margin-left: 10px;
-  width: 16px;
-  height: 16px;
+    cursor: pointer;
+    margin-left: 10px;
+    width: 16px;
+    height: 16px;
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
+.drag-over {
+    border-top: 2px solid #000;
+}
+
+html {
+    font-family: 'Lora', sans-serif;
+    width: 100%;
+}
+
+
+input{
+    font-family: 'Ubuntu', sans-serif;
+    display: block;
+    margin: 10px;
+    padding: 5px;
+    border: none;
+    font-size: 22px;
+}
+
+input:focus {
+    outline: 0;
 }
