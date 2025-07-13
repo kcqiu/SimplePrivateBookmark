@@ -1,13 +1,32 @@
 // Initialize bookmarks and encryption key
 chrome.runtime.onInstalled.addListener(async () => {
-    const key = await generateKey();
-    const exportedKey = await exportKey(key);
-
-    chrome.storage.sync.set({
-        bookmarks: [],
-        encryptionKey: exportedKey,
-        hash: null,
-        sessionActive: false // Ensure sessionActive is initialized
+    // Check if storage already exists to avoid overwriting existing data
+    chrome.storage.sync.get(["bookmarks", "encryptionKey", "hash", "sessionActive"], async (data) => {
+        const updates = {};
+        
+        // Only initialize if values don't exist
+        if (!data.encryptionKey) {
+            const key = await generateKey();
+            const exportedKey = await exportKey(key);
+            updates.encryptionKey = exportedKey;
+        }
+        
+        if (!data.bookmarks) {
+            updates.bookmarks = [];
+        }
+        
+        if (data.hash === undefined) {
+            updates.hash = null;
+        }
+        
+        if (data.sessionActive === undefined) {
+            updates.sessionActive = false;
+        }
+        
+        // Only update storage if there are new values to set
+        if (Object.keys(updates).length > 0) {
+            chrome.storage.sync.set(updates);
+        }
     });
 
     chrome.contextMenus.create({
